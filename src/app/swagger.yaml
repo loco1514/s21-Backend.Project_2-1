@@ -1,0 +1,458 @@
+openapi: 3.0.2
+info:
+  title: Store Management API
+  version: 1.2
+  description: API for managing products, clients, images, and suppliers in the store.
+servers:
+  - url: /api/v1
+paths:
+  /product/:
+    get:
+      summary: Get all available products
+      tags:
+        - Product
+      description: Retrieve a list of all available products.
+      responses:
+        '200':
+          description: A list of products.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    name:
+                      type: string
+                    category:
+                      type: string
+                    price:
+                      type: number
+                      format: float
+                    available_stock:
+                      type: integer
+                    supplier_id:
+                      type: string
+                      format: uuid
+                    image_id:
+                      type: string
+                      nullable: true
+        '500':
+          description: Internal server error.
+    post:
+      summary: Create a new product
+      tags:
+        - Product
+      description: Add a new product to the store.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                price:
+                  type: number
+                  format: float
+                available_stock:
+                  type: integer
+                supplier_id:
+                  type: string
+                  format: uuid
+                image_id:
+                  type: string
+                  nullable: true
+              required:
+                - name
+                - category
+                - price
+                - available_stock
+                - supplier_id
+      responses:
+        '201':
+          description: Product created successfully.
+        '400':
+          description: Bad request. Missing required fields or invalid data.
+        '500':
+          description: Internal server error.
+  /product/{product_id}:
+    get:
+      summary: Get a product by ID
+      tags:
+        - Product
+      description: Retrieve a product based on its unique ID.
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product found.
+        '404':
+          description: Product not found.
+        '500':
+          description: Internal server error.
+    patch:
+      summary: Reduce product stock
+      tags:
+        - Product
+      description: Update the stock of a product by reducing its available quantity.
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+              required:
+                - quantity
+      responses:
+        '200':
+          description: Product stock reduced successfully.
+        '400':
+          description: Bad request. Missing required fields or invalid data.
+        '404':
+          description: Product not found.
+        '500':
+          description: Internal server error.
+    delete:
+      summary: Delete a product by ID
+      tags:
+        - Product
+      description: Remove a product from the store by its ID.
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Product deleted successfully.
+        '404':
+          description: Product not found.
+        '500':
+          description: Internal server error.
+  /clients/:
+    get:
+      summary: Get all clients with optional pagination
+      tags:
+        - Clients
+      parameters:
+        - name: limit
+          in: query
+          description: The number of clients to return
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: offset
+          in: query
+          description: The number of clients to skip before starting to return results
+          required: false
+          schema:
+            type: integer
+            example: 0
+      responses:
+        200:
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        500:
+          description: Internal server error
+    post:
+      summary: Create a new client
+      tags:
+        - Clients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_name:
+                  type: string
+                client_surname:
+                  type: string
+                birthday:
+                  type: string
+                gender:
+                  type: string
+                address_id:
+                  type: string
+              required:
+                - client_name
+                - client_surname
+                - birthday
+                - gender
+                - address_id
+      responses:
+        201:
+          description: Client created
+  /clients/{client_name}&{client_surname}:
+    get:
+      summary: Get client by name and surname
+      tags:
+        - Clients
+      parameters:
+        - name: client_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: client_surname
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Client details
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Client not found
+  /clients/{client_id}:
+    patch:
+      summary: Update client address
+      tags:
+        - Clients
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address_id:
+                  type: string
+              required:
+                - address_id
+      responses:
+        200:
+          description: Client updated
+        404:
+          description: Client not found
+    delete:
+      summary: Delete a client
+      tags:
+        - Clients
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Client deleted
+        404:
+          description: Client not found
+  /images/:
+    post:
+      summary: Add a new image
+      tags:
+        - Images
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            description: Image file (binary data)
+      responses:
+        201:
+          description: Image created
+  /images/{image_id}:
+    get:
+      summary: Get image by ID
+      tags:
+        - Images
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Image data (binary)
+          content:
+            application/octet-stream:
+              description: The image file in binary format.
+        404:
+          description: Image not found
+    patch:
+      summary: Update an image
+      tags:
+        - Images
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            description: New image file (binary data)
+      responses:
+        200:
+          description: Image updated
+        404:
+          description: Image not found
+    delete:
+      summary: Delete an image
+      tags:
+        - Images
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Image deleted
+        404:
+          description: Image not found
+  /images/product/{product_id}:
+    get:
+      summary: Get image by product ID
+      tags:
+        - Images
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Product image (binary)
+          content:
+            application/octet-stream:
+              description: The image file in binary format for the product.
+        404:
+          description: Image not found
+  /supplier/:
+    get:
+      summary: Get all suppliers
+      tags:
+        - Suppliers
+      responses:
+        200:
+          description: List of suppliers
+    post:
+      summary: Create a supplier
+      tags:
+        - Suppliers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                address_id:
+                  type: string
+                phone_number:
+                  type: string
+              required:
+                - name
+                - address_id
+                - phone_number
+      responses:
+        201:
+          description: Supplier created
+  /supplier/{supplier_id}:
+    get:
+      summary: Get supplier by ID
+      tags:
+        - Suppliers
+      parameters:
+        - name: supplier_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Supplier details
+        404:
+          description: Supplier not found
+    patch:
+      summary: Update supplier address
+      tags:
+        - Suppliers
+      parameters:
+        - name: supplier_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address_id:
+                  type: string
+              required:
+                - address_id
+      responses:
+        200:
+          description: Supplier updated
+        404:
+          description: Supplier not found
+    delete:
+      summary: Delete a supplier
+      tags:
+        - Suppliers
+      parameters:
+        - name: supplier_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Supplier deleted
+        404:
+          description: Supplier not found

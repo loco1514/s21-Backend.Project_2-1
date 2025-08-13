@@ -1,0 +1,7 @@
+Flask
+psycopg2
+SQLAlchemy
+uuid
+Flask-SQLAlchemy
+Flask-Migrate
+flask_swagger_ui
